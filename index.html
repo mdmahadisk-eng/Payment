@@ -489,7 +489,7 @@
         <input type="text" id="username" placeholder="Username" autocomplete="off">
         <input type="password" id="password" placeholder="Password">
         <button class="btn-login" onclick="attemptLogin()">Access Dashboard</button>
-        <div id="login-error">Invalid credentials. Try <strong>admin</strong> / <strong>1234</strong></div>
+        <div id="login-error">Invalid credentials</div>
     </div>
 </div>
 
@@ -677,7 +677,7 @@
         } else {
             const err = document.getElementById('login-error');
             err.style.display = 'block';
-            err.innerHTML = `❌ Invalid credentials. Try <strong>${auth.username}</strong> / <strong>${auth.password}</strong>`;
+            err.textContent = '❌ Invalid username or password';
             setTimeout(() => { err.style.display = 'none'; }, 3000);
         }
     }
@@ -1287,9 +1287,8 @@
             totalBank = 0,
             totalLoan = 0;
 
-        // Get current month index (0-based)
         const now = new Date();
-        const currentMonthIndex = now.getMonth(); // 0 = January
+        const currentMonthIndex = now.getMonth();
         const currentMonthName = months[currentMonthIndex];
         let thisMonthPay = 0;
 
@@ -1298,7 +1297,6 @@
             db.clients.forEach(c => s += (yd.main[m]?.[c] || 0));
             totalPay += s;
             totalHome += (yd.home[m] || 0);
-            // If this is the current month, store the payment sum
             if (idx === currentMonthIndex) {
                 thisMonthPay = s;
             }
@@ -1318,7 +1316,6 @@
         document.getElementById('cardLoan').textContent = formatNumber(totalLoan);
         document.getElementById('cardGrand').textContent = formatNumber(netWorth);
 
-        // This Month card
         document.getElementById('cardThisMonth').textContent = formatNumber(thisMonthPay);
         document.getElementById('thisMonthLabel').textContent = `${currentMonthName} ${now.getFullYear()}`;
 
