@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Finance Pro Ultimate - Asset & Loan Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ===== CSS Variables (Light & Dark) ===== */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-light: #475569;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --radius: 16px;
+            --transition: 0.25s ease;
+            --header-bg: #ffffff;
+            --input-bg: #f8fafc;
+            --hover-bg: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+            --header-bg: #1e293b;
+            --input-bg: #0f172a;
+            --hover-bg: #334155;
+            --primary-light: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 40px;
+            transition: background var(--transition), color var(--transition);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        /* ===== Login ===== */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: var(--card);
+            padding: 40px 32px;
+            border-radius: 24px;
+            text-align: center;
+            width: 380px;
+            max-width: 92%;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .login-box h2 { margin-bottom: 24px; color: var(--primary); }
+        .login-box input {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text);
+            transition: var(--transition);
+        }
+        .login-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .btn-login {
+            width: 100%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            margin-top: 12px;
+            transition: var(--transition);
+        }
+        .btn-login:hover { background: var(--primary-dark); transform: scale(0.98); }
+        #login-error {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+            background: #fee2e2;
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .login-footer {
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        .login-footer a {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .login-footer a:hover { color: var(--primary-dark); }
+
+        /* ===== Dashboard ===== */
+        #dashboard { display: none; padding: 16px 20px 40px; max-width: 1600px; margin: 0 auto; }
+        .header {
+            background: var(--header-bg);
+            border-radius: var(--radius);
+            padding: 14px 22px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .controls .brand {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .badge-tool {
+            background: var(--input-bg);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .user-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .user-badge:hover { background: var(--primary); color: #fff; }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 7px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            font-size: 12px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-sm { padding: 4px 10px; font-size: 11px; }
+        .btn-add { background: var(--success); color: #fff; }
+        .btn-add:hover { opacity: 0.85; transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); transform: scale(0.97); }
+        .btn-warning { background: var(--warning); color: #fff; }
+        .btn-warning:hover { opacity: 0.85; transform: scale(0.97); }
+        .btn-del { background: #fee2e2; color: var(--danger); }
+        .btn-del:hover { background: var(--danger); color: #fff; }
+        .btn-ghost { background: transparent; color: var(--text-light); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--hover-bg); }
+
+        /* ===== Stats Grid (now 7 cards) ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card);
+            padding: 16px 14px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-bottom: 3px solid var(--primary);
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+        .stat-card h4 {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .stat-card .val {
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 6px;
+            color: var(--text);
+        }
+
+        .section-card {
+            background: var(--card);
+            padding: 18px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--primary);
+            padding-left: 14px;
+            color: var(--text);
+        }
+        .table-wrapper { overflow-x: auto; border-radius: 12px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 8px 6px;
+            text-align: center;
+            vertical-align: middle;
+            transition: var(--transition);
+        }
+        th {
+            background: var(--input-bg);
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+        }
+        td { color: var(--text); }
+        input.table-input {
+            width: 100%;
+            min-width: 80px;
+            border: none;
+            text-align: right;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: transparent;
+            font-weight: 500;
+            color: var(--text);
+            transition: var(--transition);
+            font-family: inherit;
+            font-size: 13px;
+        }
+        input.table-input:focus {
+            outline: none;
+            background: var(--primary-light);
+            box-shadow: 0 0 0 2px var(--primary);
+            text-align: right;
+        }
+        input.table-input::placeholder { color: var(--text-light); opacity: 0.4; }
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+            transition: var(--transition);
+        }
+        .status-unpaid { background: #fee2e2; color: #b91c1c; }
+        .status-paid { background: #dcfce7; color: #15803d; }
+        [data-theme="dark"] .status-unpaid { background: #7f1d1d; color: #fca5a5; }
+        [data-theme="dark"] .status-paid { background: #14532d; color: #86efac; }
+        .flex-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .flex-item { flex: 1; min-width: 260px; }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 4px 14px;
+            transition: var(--transition);
+        }
+        .search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 8px 4px;
+            font-size: 13px;
+            color: var(--text);
+            width: 140px;
+        }
+        .search-box input:focus { outline: none; }
+        .search-box .icon { color: var(--text-light); font-size: 14px; }
+        .toast-msg {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--card);
+            color: var(--text);
+            padding: 12px 22px;
+            border-radius: 60px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1100;
+            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            animation: slideUp 0.35s ease forwards;
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            width: 520px;
+            max-width: 94%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 26px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .modal-content h3 {
+            margin-bottom: 18px;
+            font-size: 21px;
+            color: var(--text);
+        }
+        .modal-content label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            display: block;
+            margin-top: 10px;
+        }
+        .modal-content input, .modal-content textarea, .modal-content select {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 4px 0 6px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .modal-content input:focus, .modal-content textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        .modal-content textarea { resize: vertical; min-height: 60px; }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .client-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px;
+            background: var(--input-bg);
+            border-radius: 12px;
+            margin-bottom: 6px;
+            border: 1px solid var(--border);
+        }
+        .client-list-item .client-name { font-weight: 600; flex: 1; color: var(--text); }
+        .client-list-item .client-actions { display: flex; gap: 6px; }
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 12px;
+            border: 3px solid var(--border);
+        }
+        .log-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        .log-entry .log-time { color: var(--text-light); font-size: 11px; min-width: 70px; }
+        .log-entry .log-text { flex: 1; color: var(--text); }
+        .log-entry .log-icon { font-size: 16px; }
+        .total-amount { font-weight: 700; color: var(--primary); }
+
+        @media (max-width: 700px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card .val { font-size: 18px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .controls .brand { font-size: 15px; }
+            .search-box input { width: 100px; }
+            .modal-content { padding: 20px 16px; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .flex-item { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+    <div class="login-box">
+        <h2>⚡ Finance Pro Ultimate</h2>
+        <input type="text" id="username" placeholder="Username" autocomplete="off">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn-login" onclick="attemptLogin()">Access Dashboard</button>
+        <div id="login-error">Invalid credentials. Try <strong>admin</strong> / <strong>1234</strong></div>
+        <div class="login-footer">
+            <a onclick="resetCredentials()">🔑 Reset credentials to default</a>
+            &nbsp;·&nbsp; <a onclick="clearAllData()">🗑️ Clear all data</a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
+    <div class="header">
+        <div class="controls">
+            <span class="brand">📊 Finance Pro</span>
+            <select id="yearSelect" onchange="switchYear()" class="badge-tool"></select>
+            <button class="btn btn-primary btn-sm" onclick="addNewYear()">➕ Year</button>
+            <button class="btn btn-primary btn-sm" onclick="openClientModal()">👥 Clients</button>
+            <div class="search-box">
+                <span class="icon">🔍</span>
+                <input type="text" id="clientSearch" placeholder="Search client..." oninput="filterClients()">
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" title="Toggle Dark/Light">🌓</button>
+            <button class="btn btn-warning btn-sm" onclick="exportCSV()">📤 CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="exportData()">📥 Backup</button>
+            <label class="btn btn-primary btn-sm" style="background:#475569; cursor:pointer;">📂 Restore<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"></label>
+            <span class="user-badge" onclick="openProfileModal()" id="profileDisplay">👤 admin</span>
+            <button class="btn btn-del btn-sm" onclick="logout()">🚪</button>
+        </div>
+    </div>
+
+    <!-- Stats Grid: 7 cards -->
+    <div class="stats-grid">
+        <div class="stat-card"><h4>📋 Payments</h4><div class="val" id="cardClient">0</div></div>
+        <div class="stat-card" style="border-color:#f59e0b"><h4>🏠 Home</h4><div class="val" id="cardHome">0</div></div>
+        <div class="stat-card" style="border-color:#10b981"><h4>✨ Extra</h4><div class="val" id="cardExtra">0</div></div>
+        <div class="stat-card" style="border-color:#8b5cf6"><h4>💰 Total Income</h4><div class="val" id="cardIncome">0</div></div>
+        <div class="stat-card" style="border-color:#06b6d4"><h4>🏦 Bank</h4><div class="val" id="cardBank">0</div></div>
+        <div class="stat-card" style="border-color:#ef4444"><h4>📌 Loans</h4><div class="val" id="cardLoan">0</div></div>
+        <div class="stat-card" style="border-color:#8b5cf6"><h4>📊 Net Worth</h4><div class="val" id="cardGrand">0</div></div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title">📅 Monthly Payments <span style="font-size:12px; font-weight:400; color:var(--text-light);" id="clientCountDisplay"></span></div>
+        <div class="table-wrapper">
+            <table id="mainTable">
+                <thead id="tableHeader"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex-row">
+        <div class="flex-item section-card">
+            <div class="section-title">🏦 Bank Accounts <button class="btn btn-add btn-sm" onclick="addBank()">+ Add</button></div>
+            <div class="table-wrapper"><table><thead><tr><th>Bank Name</th><th>Balance (৳)</th><th>Action</th></tr></thead><tbody id="bankBody"></tbody></table></div>
+        </div>
+        <div class="flex-item section-card">
+            <div class="section-title">📎 Personal Loans <button class="btn btn-add btn-sm" onclick="addLoan()">+ Add</button></div>
+            <div class="table-wrapper"><table><thead><tr><th>Borrower</th><th>Amount (৳)</th><th>Status</th><th>Action</th></tr></thead><tbody id="loanBody"></tbody></table></div>
+        </div>
+    </div>
+
+    <div class="flex-row">
+        <div class="flex-item section-card">
+            <div class="section-title">📈 Income Trend</div>
+            <canvas id="incomeChart" height="120" style="max-height:200px;"></canvas>
+        </div>
+        <div class="flex-item section-card">
+            <div class="section-title">✨ Extra Income <button class="btn btn-add btn-sm" onclick="addExtraRow()">+ Entry</button></div>
+            <div class="table-wrapper"><table><thead><tr><th>Date</th><th>Note</th><th>Amount (৳)</th><th>Action</th></tr></thead><tbody id="extraBody"></tbody></table></div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="section-title">🕒 Recent Activity <button class="btn btn-ghost btn-sm" onclick="clearActivityLog()">Clear</button></div>
+        <div id="activityLog" style="max-height:140px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div id="profileModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>👤 My Profile</h3>
+        <div class="profile-avatar" id="profileAvatar">👤</div>
+        <label>Full Name</label>
+        <input type="text" id="profileName" placeholder="Your full name">
+        <label>Phone</label>
+        <input type="text" id="profilePhone" placeholder="Phone number">
+        <label>Email</label>
+        <input type="email" id="profileEmail" placeholder="Email address">
+        <label>Address</label>
+        <textarea id="profileAddress" placeholder="Your address" rows="2"></textarea>
+        <label>Company / Organization</label>
+        <input type="text" id="profileCompany" placeholder="Company name">
+        <label>Avatar Emoji</label>
+        <input type="text" id="profileEmoji" placeholder="e.g. 🚀, 👨‍💻, 📊" maxlength="2" style="width:80px;">
+        <div class="modal-buttons">
+            <button class="btn btn-del" onclick="closeProfileModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveProfile()">💾 Save Profile</button>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>🔐 Security</h3>
+        <label>Current Password</label>
+        <input type="password" id="modalCurrentPass" placeholder="Enter current password">
+        <label>New Username</label>
+        <input type="text" id="modalNewUsername" placeholder="New username">
+        <label>New Password</label>
+        <input type="password" id="modalNewPassword" placeholder="New password (leave blank to keep)">
+        <label>Confirm New Password</label>
+        <input type="password" id="modalConfirmPassword" placeholder="Confirm new password">
+        <div class="modal-buttons">
+            <button class="btn btn-del" onclick="closeSettingsModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div id="clientModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>👥 Manage Clients</h3>
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <input type="text" id="newClientName" placeholder="New client name" style="flex:1; padding:10px; border-radius:16px; border:1px solid var(--border); background:var(--input-bg); color:var(--text);">
+            <button class="btn btn-add" onclick="addClientFromModal()">Add</button>
+        </div>
+        <div id="clientListContainer"></div>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" onclick="closeClientModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  NUMBER FORMATTING HELPERS
+    // ============================================================
+    function formatNumber(n) {
+        if (n === undefined || n === null || isNaN(n)) return '0';
+        return Number(n).toLocaleString('en-US');
+    }
+
+    function parseNumber(s) {
+        if (!s || s === '') return 0;
+        const cleaned = String(s).replace(/,/g, '').trim();
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    // ============================================================
+    //  AUTHENTICATION
+    // ============================================================
+    const AUTH_KEY = 'financeAuth';
+    function getStoredAuth() {
+        const def = { username: 'admin', password: '1234' };
+        try {
+            const stored = localStorage.getItem(AUTH_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed.username && parsed.password) return parsed;
+            }
+        } catch(e) {}
+        saveAuthToLocal(def);
+        return def;
+    }
+    function saveAuthToLocal(a) { localStorage.setItem(AUTH_KEY, JSON.stringify(a)); }
+    if (!localStorage.getItem(AUTH_KEY)) saveAuthToLocal({ username: 'admin', password: '1234' });
+
+    function resetCredentials() {
+        if (confirm('Reset credentials to default (admin / 1234)? This will not affect your finance data.')) {
+            saveAuthToLocal({ username: 'admin', password: '1234' });
+            document.getElementById('username').value = 'admin';
+            document.getElementById('password').value = '1234';
+            document.getElementById('login-error').style.display = 'none';
+            showToast('✅ Credentials reset to admin / 1234');
+        }
+    }
+
+    function clearAllData() {
+        if (confirm('⚠️ This will DELETE ALL finance data and settings! Are you sure?')) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function attemptLogin() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value.trim();
+        const auth = getStoredAuth();
+
+        if (user === auth.username && pass === auth.password) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            updateProfileDisplay();
+            initApp();
+            addActivity('Logged in', '🔓');
+            document.getElementById('login-error').style.display = 'none';
+        } else {
+            const err = document.getElementById('login-error');
+            err.style.display = 'block';
+            err.innerHTML = `❌ Invalid credentials. Try <strong>${auth.username}</strong> / <strong>${auth.password}</strong>`;
+            setTimeout(() => { err.style.display = 'none'; }, 3000);
+        }
+    }
+
+    // ============================================================
+    //  PROFILE & ACTIVITY
+    // ============================================================
+    const PROFILE_KEY = 'financeProfile';
+    function getProfile() {
+        const def = { name: '', phone: '', email: '', address: '', company: '', emoji: '👤' };
+        try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || def; } catch(e) { return def; }
+    }
+    function saveProfileToLocal(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+
+    const LOG_KEY = 'financeActivityLog';
+    function getActivityLog() {
+        try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; }
+    }
+    function saveActivityLog(log) { localStorage.setItem(LOG_KEY, JSON.stringify(log)); }
+    function addActivity(msg, icon = '📌') {
+        const log = getActivityLog();
+        const now = new Date();
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        log.unshift({ time, msg, icon, date: now.toISOString() });
+        if (log.length > 100) log.pop();
+        saveActivityLog(log);
+        renderActivityLog();
+    }
+    function renderActivityLog() {
+        const container = document.getElementById('activityLog');
+        const log = getActivityLog();
+        container.innerHTML = log.length === 0 ? '<div style="color:var(--text-light);font-size:13px;">No activity yet.</div>' :
+            log.map(e => `<div class="log-entry"><span class="log-icon">${e.icon}</span><span class="log-time">${e.time}</span><span class="log-text">${e.msg}</span></div>`).join('');
+    }
+    function clearActivityLog() { if (confirm('Clear activity log?')) { saveActivityLog([]); renderActivityLog(); showToast('Log cleared'); } }
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const current = html.getAttribute('data-theme');
+        html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        localStorage.setItem('financeTheme', html.getAttribute('data-theme'));
+        showToast(`🌓 ${html.getAttribute('data-theme') === 'dark' ? 'Dark' : 'Light'} mode`);
+    }
+    (function() {
+        const saved = localStorage.getItem('financeTheme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function showToast(msg, type = 'info') {
+        const t = document.createElement('div');
+        t.className = 'toast-msg';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 2800);
+    }
+
+    // ============================================================
+    //  FINANCE DB
+    // ============================================================
+    const DEFAULT_CLIENTS = [
+        "Speedz", "DTO", "HM+Mdot", "HG", "BON", "THK", "AC", "FO", "CHOCO",
+        "Sinthia", "Skyinfo", "FBN", "KURI", "SS", "PBO", "GBN"
+    ];
+    let db = JSON.parse(localStorage.getItem('financeMegaDB')) || {
+        years: { "2026": { main: {}, home: {}, extra: [], banks: [], loans: [] } },
+        currentYear: "2026",
+        clients: DEFAULT_CLIENTS
+    };
+    let chartInstance = null;
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    function saveDB() { localStorage.setItem('financeMegaDB', JSON.stringify(db)); }
+
+    function fullRefresh() {
+        renderYearSelect();
+        renderHeader();
+        renderMainTable();
+        renderBanks();
+        renderLoans();
+        renderExtra();
+        calculateAndUpdateStats();
+        renderActivityLog();
+        updateProfileDisplay();
+        document.getElementById('clientCountDisplay').textContent = `(${db.clients.length} clients)`;
+    }
+
+    function updateProfileDisplay() {
+        const p = getProfile();
+        const auth = getStoredAuth();
+        const displayName = p.name || auth.username || 'admin';
+        const emoji = p.emoji || '👤';
+        document.getElementById('profileDisplay').innerHTML = `${emoji} ${displayName}`;
+    }
+
+    // ============================================================
+    //  PROFILE MODAL
+    // ============================================================
+    function openProfileModal() {
+        const p = getProfile();
+        document.getElementById('profileName').value = p.name || '';
+        document.getElementById('profilePhone').value = p.phone || '';
+        document.getElementById('profileEmail').value = p.email || '';
+        document.getElementById('profileAddress').value = p.address || '';
+        document.getElementById('profileCompany').value = p.company || '';
+        document.getElementById('profileEmoji').value = p.emoji || '👤';
+        document.getElementById('profileAvatar').textContent = p.emoji || '👤';
+        document.getElementById('profileModal').classList.add('active');
+    }
+    function closeProfileModal() { document.getElementById('profileModal').classList.remove('active'); }
+    function saveProfile() {
+        const p = {
+            name: document.getElementById('profileName').value.trim(),
+            phone: document.getElementById('profilePhone').value.trim(),
+            email: document.getElementById('profileEmail').value.trim(),
+            address: document.getElementById('profileAddress').value.trim(),
+            company: document.getElementById('profileCompany').value.trim(),
+            emoji: document.getElementById('profileEmoji').value.trim() || '👤'
+        };
+        saveProfileToLocal(p);
+        updateProfileDisplay();
+        closeProfileModal();
+        addActivity('Profile updated', '👤');
+        showToast('✅ Profile saved!');
+    }
+
+    // ============================================================
+    //  SETTINGS (Security)
+    // ============================================================
+    function openSettingsModal() {
+        const auth = getStoredAuth();
+        document.getElementById('modalNewUsername').value = auth.username;
+        document.getElementById('modalCurrentPass').value = '';
+        document.getElementById('modalNewPassword').value = '';
+        document.getElementById('modalConfirmPassword').value = '';
+        document.getElementById('settingsModal').classList.add('active');
+    }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('active'); }
+    function saveProfileChanges() {
+        const auth = getStoredAuth();
+        const current = document.getElementById('modalCurrentPass').value.trim();
+        if (current !== auth.password) { showToast('❌ Wrong current password', 'error'); return; }
+        const newUser = document.getElementById('modalNewUsername').value.trim() || auth.username;
+        const newPass = document.getElementById('modalNewPassword').value.trim();
+        const confirm = document.getElementById('modalConfirmPassword').value.trim();
+        if (newPass && newPass !== confirm) { showToast('❌ Passwords do not match', 'error'); return; }
+        const updated = { username: newUser, password: newPass || auth.password };
+        saveAuthToLocal(updated);
+        closeSettingsModal();
+        updateProfileDisplay();
+        addActivity('Security settings changed', '🔐');
+        showToast('✅ Credentials updated!');
+    }
+
+    // ============================================================
+    //  CLIENT MANAGEMENT (Modal)
+    // ============================================================
+    function openClientModal() { renderClientList(); document.getElementById('clientModal').classList.add('active'); document.getElementById('newClientName').value = ''; }
+    function closeClientModal() { document.getElementById('clientModal').classList.remove('active'); }
+
+    function renderClientList() {
+        const container = document.getElementById('clientListContainer');
+        container.innerHTML = '';
+        if (!db.clients.length) { container.innerHTML = '<p style="color:var(--text-light);">No clients.</p>'; return; }
+        db.clients.forEach((client) => {
+            const div = document.createElement('div');
+            div.className = 'client-list-item';
+            div.innerHTML = `
+                <span class="client-name">${escapeHtml(client)}</span>
+                <div class="client-actions">
+                    <button class="btn btn-primary btn-sm" onclick="renameClientFromModal('${escapeHtml(client)}')">✏️</button>
+                    <button class="btn btn-del btn-sm" onclick="removeClientFromModal('${escapeHtml(client)}')">✖️</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addClientFromModal() {
+        const input = document.getElementById('newClientName');
+        const name = input.value.trim();
+        if (!name) { showToast('Enter a name'); return; }
+        if (db.clients.includes(name)) { showToast('Already exists!'); return; }
+        db.clients.push(name);
+        saveDB();
+        fullRefresh();
+        renderClientList();
+        input.value = '';
+        addActivity(`Added client: ${name}`, '👥');
+        showToast(`✅ "${name}" added`);
+    }
+
+    function renameClientFromModal(oldName) {
+        const newName = prompt(`Rename "${oldName}" to:`, oldName);
+        if (!newName || newName.trim() === '' || newName === oldName) return;
+        const trimmed = newName.trim();
+        if (db.clients.includes(trimmed)) { showToast('Name already exists!'); return; }
+        renameClientData(oldName, trimmed);
+        const idx = db.clients.indexOf(oldName);
+        if (idx !== -1) db.clients[idx] = trimmed;
+        saveDB();
+        fullRefresh();
+        renderClientList();
+        addActivity(`Renamed "${oldName}" → "${trimmed}"`, '✏️');
+        showToast(`✏️ Renamed to "${trimmed}"`);
+    }
+
+    function removeClientFromModal(clientName) {
+        if (!confirm(`Remove "${clientName}" and ALL payment data?`)) return;
+        deleteClientDataAcrossAllYears(clientName);
+        db.clients = db.clients.filter(c => c !== clientName);
+        saveDB();
+        fullRefresh();
+        renderClientList();
+        addActivity(`Removed client: ${clientName}`, '🗑️');
+        showToast(`🗑️ "${clientName}" removed`);
+    }
+
+    function deleteClientDataAcrossAllYears(clientName) {
+        for (let year in db.years) {
+            const yd = db.years[year];
+            if (yd.main) {
+                for (let m of months) {
+                    if (yd.main[m] && yd.main[m][clientName] !== undefined) delete yd.main[m][clientName];
+                }
+            }
+        }
+    }
+    function renameClientData(oldName, newName) {
+        for (let year in db.years) {
+            const yd = db.years[year];
+            if (yd.main) {
+                for (let m of months) {
+                    if (yd.main[m] && yd.main[m][oldName] !== undefined) {
+                        yd.main[m][newName] = yd.main[m][oldName];
+                        delete yd.main[m][oldName];
+                    }
+                }
+            }
+        }
+    }
+
+    let filteredClients = [];
+
+    function filterClients() {
+        const query = document.getElementById('clientSearch').value.toLowerCase().trim();
+        if (!query) { filteredClients = []; renderHeader(); renderMainTable(); return; }
+        filteredClients = db.clients.filter(c => c.toLowerCase().includes(query));
+        renderHeader();
+        renderMainTable();
+    }
+
+    function getDisplayClients() {
+        const q = document.getElementById('clientSearch').value.toLowerCase().trim();
+        if (!q) return db.clients;
+        return db.clients.filter(c => c.toLowerCase().includes(q));
+    }
+
+    // ============================================================
+    //  YEAR & TABLE RENDERING
+    // ============================================================
+    function renderYearSelect() {
+        const s = document.getElementById('yearSelect');
+        s.innerHTML = '';
+        Object.keys(db.years).forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            if (y === db.currentYear) opt.selected = true;
+            s.appendChild(opt);
+        });
+    }
+
+    function switchYear() { db.currentYear = document.getElementById('yearSelect').value; saveDB(); fullRefresh(); addActivity(`Switched to ${db.currentYear}`, '📅'); }
+
+    function addNewYear() {
+        let y = prompt('Enter new year:', String(parseInt(db.currentYear) + 1));
+        if (y && !db.years[y]) {
+            db.years[y] = { main: {}, home: {}, extra: [], banks: [], loans: [] };
+            db.currentYear = y;
+            saveDB();
+            fullRefresh();
+            addActivity(`Created year ${y}`, '📅');
+            showToast(`📅 Year ${y} created`);
+        } else if (y && db.years[y]) showToast('Year exists!');
+    }
+
+    function renderHeader() {
+        const thead = document.getElementById('tableHeader');
+        thead.innerHTML = '';
+        const tr = document.createElement('tr');
+        const thMonth = document.createElement('th');
+        thMonth.textContent = 'Month';
+        tr.appendChild(thMonth);
+
+        const clients = getDisplayClients();
+        clients.forEach(client => {
+            const th = document.createElement('th');
+            th.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap;"><span>${escapeHtml(client)}</span><div style="display:flex;gap:3px;"><button class="btn-del btn-sm" style="font-size:8px;padding:1px 5px;" onclick="renameClient('${escapeHtml(client)}')">✏️</button><button class="btn-del btn-sm" style="font-size:8px;padding:1px 5px;" onclick="removeClient('${escapeHtml(client)}')">✖️</button></div></div>`;
+            tr.appendChild(th);
+        });
+        const thTotal = document.createElement('th');
+        thTotal.textContent = 'Monthly Total';
+        tr.appendChild(thTotal);
+        const thHome = document.createElement('th');
+        thHome.textContent = '🏠 HOME';
+        tr.appendChild(thHome);
+        thead.appendChild(tr);
+    }
+
+    function renderMainTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        const yearData = db.years[db.currentYear];
+        if (!yearData.main) yearData.main = {};
+        if (!yearData.home) yearData.home = {};
+        const clients = getDisplayClients();
+
+        months.forEach(month => {
+            const row = tbody.insertRow();
+            const cellMonth = row.insertCell(0);
+            cellMonth.textContent = month;
+            cellMonth.style.fontWeight = 'bold';
+            cellMonth.style.background = 'var(--input-bg)';
+
+            let monthTotal = 0;
+            clients.forEach(client => {
+                const cell = row.insertCell();
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'table-input';
+                const rawVal = yearData.main[month]?.[client] || 0;
+                input.value = formatNumber(rawVal);
+                input.placeholder = '0';
+                input.dataset.client = client;
+                input.dataset.month = month;
+                input.addEventListener('focus', function() {
+                    this.value = this.value.replace(/,/g, '');
+                });
+                input.addEventListener('blur', function() {
+                    const num = parseNumber(this.value);
+                    this.value = formatNumber(num);
+                    updateMainField(month, client, num);
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') this.blur();
+                });
+                cell.appendChild(input);
+                monthTotal += (yearData.main[month]?.[client] || 0);
+            });
+            const totalCell = row.insertCell();
+            totalCell.id = `total-${month}`;
+            totalCell.style.fontWeight = 'bold';
+            totalCell.textContent = formatNumber(monthTotal);
+
+            const homeCell = row.insertCell();
+            const homeInput = document.createElement('input');
+            homeInput.type = 'text';
+            homeInput.className = 'table-input';
+            const homeRaw = yearData.home[month] || 0;
+            homeInput.value = formatNumber(homeRaw);
+            homeInput.placeholder = '0';
+            homeInput.addEventListener('focus', function() {
+                this.value = this.value.replace(/,/g, '');
+            });
+            homeInput.addEventListener('blur', function() {
+                const num = parseNumber(this.value);
+                this.value = formatNumber(num);
+                updateHomeField(month, num);
+            });
+            homeInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') this.blur();
+            });
+            homeCell.appendChild(homeInput);
+        });
+    }
+
+    function updateMainField(month, client, value) {
+        if (!db.years[db.currentYear].main[month]) db.years[db.currentYear].main[month] = {};
+        db.years[db.currentYear].main[month][client] = value;
+        saveDB();
+        calculateAndUpdateStats();
+        const totalCell = document.getElementById(`total-${month}`);
+        if (totalCell) {
+            let s = 0;
+            getDisplayClients().forEach(c => s += (db.years[db.currentYear].main[month]?.[c] || 0));
+            totalCell.textContent = formatNumber(s);
+        }
+    }
+    function updateHomeField(month, value) { db.years[db.currentYear].home[month] = value; saveDB(); calculateAndUpdateStats(); }
+
+    // ============================================================
+    //  BANK (with formatting)
+    // ============================================================
+    function renderBanks() {
+        const body = document.getElementById('bankBody');
+        body.innerHTML = '';
+        const banks = db.years[db.currentYear].banks || [];
+        banks.forEach((bank, idx) => {
+            const row = body.insertRow();
+            const nameCell = row.insertCell(0);
+            const ni = document.createElement('input');
+            ni.type = 'text';
+            ni.value = bank.name || '';
+            ni.className = 'table-input';
+            ni.style.textAlign = 'left';
+            ni.addEventListener('blur', function() { updateBankField(idx, 'name', this.value); });
+            nameCell.appendChild(ni);
+            const balCell = row.insertCell(1);
+            const bi = document.createElement('input');
+            bi.type = 'text';
+            bi.className = 'table-input';
+            bi.value = formatNumber(bank.balance || 0);
+            bi.addEventListener('focus', function() { this.value = this.value.replace(/,/g, ''); });
+            bi.addEventListener('blur', function() {
+                const num = parseNumber(this.value);
+                this.value = formatNumber(num);
+                updateBankField(idx, 'balance', num);
+            });
+            bi.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
+            balCell.appendChild(bi);
+            const actCell = row.insertCell(2);
+            const del = document.createElement('button');
+            del.textContent = '✖️';
+            del.className = 'btn-del btn-sm';
+            del.onclick = () => { delBank(idx); };
+            actCell.appendChild(del);
+        });
+    }
+
+    function updateBankField(idx, field, val) {
+        const banks = db.years[db.currentYear].banks;
+        if (banks[idx]) { banks[idx][field] = val; saveDB(); calculateAndUpdateStats(); renderBanks(); }
+    }
+    function addBank() { db.years[db.currentYear].banks.push({ name: 'New Bank', balance: 0 }); renderBanks(); saveDB(); calculateAndUpdateStats(); addActivity('Added bank account', '🏦'); showToast('Bank added'); }
+    function delBank(idx) { db.years[db.currentYear].banks.splice(idx, 1); renderBanks(); saveDB(); calculateAndUpdateStats(); addActivity('Removed bank', '🏦'); showToast('Bank removed'); }
+
+    // ============================================================
+    //  LOANS (with formatting)
+    // ============================================================
+    function renderLoans() {
+        const body = document.getElementById('loanBody');
+        body.innerHTML = '';
+        const loans = db.years[db.currentYear].loans || [];
+        loans.forEach((loan, idx) => {
+            const row = body.insertRow();
+            const nameCell = row.insertCell(0);
+            const ni = document.createElement('input');
+            ni.type = 'text';
+            ni.value = loan.name || '';
+            ni.className = 'table-input';
+            ni.style.textAlign = 'left';
+            ni.addEventListener('blur', function() { updateLoanField(idx, 'name', this.value); });
+            nameCell.appendChild(ni);
+            const amtCell = row.insertCell(1);
+            const ai = document.createElement('input');
+            ai.type = 'text';
+            ai.className = 'table-input';
+            ai.value = formatNumber(loan.amount || 0);
+            ai.addEventListener('focus', function() { this.value = this.value.replace(/,/g, ''); });
+            ai.addEventListener('blur', function() {
+                const num = parseNumber(this.value);
+                this.value = formatNumber(num);
+                updateLoanField(idx, 'amount', num);
+            });
+            ai.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
+            amtCell.appendChild(ai);
+            const statCell = row.insertCell(2);
+            const span = document.createElement('span');
+            span.className = `status-badge ${loan.paid ? 'status-paid' : 'status-unpaid'}`;
+            span.textContent = loan.paid ? 'PAID' : 'UNPAID';
+            span.style.cursor = 'pointer';
+            span.onclick = () => { toggleLoanStatus(idx); };
+            statCell.appendChild(span);
+            const actCell = row.insertCell(3);
+            const del = document.createElement('button');
+            del.textContent = '✖️';
+            del.className = 'btn-del btn-sm';
+            del.onclick = () => { delLoan(idx); };
+            actCell.appendChild(del);
+        });
+    }
+
+    function updateLoanField(idx, field, val) {
+        const loans = db.years[db.currentYear].loans;
+        if (loans[idx]) { loans[idx][field] = val; saveDB(); calculateAndUpdateStats(); renderLoans(); }
+    }
+    function toggleLoanStatus(idx) {
+        const loans = db.years[db.currentYear].loans;
+        if (loans[idx]) { loans[idx].paid = !loans[idx].paid; saveDB(); calculateAndUpdateStats(); renderLoans();
+            addActivity(`Loan ${loans[idx].paid ? 'marked paid' : 'marked unpaid'}: ${loans[idx].name}`, '📎');
+        }
+    }
+    function addLoan() { db.years[db.currentYear].loans.push({ name: 'New', amount: 0, paid: false }); renderLoans(); saveDB(); calculateAndUpdateStats(); addActivity('Added loan', '📎'); showToast('Loan added'); }
+    function delLoan(idx) {
+        const loans = db.years[db.currentYear].loans;
+        const name = loans[idx]?.name || 'Unknown';
+        loans.splice(idx, 1);
+        renderLoans();
+        saveDB();
+        calculateAndUpdateStats();
+        addActivity(`Removed loan: ${name}`, '📎');
+        showToast('Loan removed');
+    }
+
+    // ============================================================
+    //  EXTRA (with formatting)
+    // ============================================================
+    function renderExtra() {
+        const body = document.getElementById('extraBody');
+        body.innerHTML = '';
+        const extras = db.years[db.currentYear].extra || [];
+        extras.forEach((ex, idx) => {
+            const row = body.insertRow();
+            const dateCell = row.insertCell(0);
+            const di = document.createElement('input');
+            di.type = 'text';
+            di.value = ex.date || '';
+            di.className = 'table-input';
+            di.placeholder = 'YYYY-MM-DD';
+            di.style.textAlign = 'left';
+            di.addEventListener('blur', function() { updateExtraField(idx, 'date', this.value); });
+            dateCell.appendChild(di);
+            const noteCell = row.insertCell(1);
+            const ni = document.createElement('input');
+            ni.type = 'text';
+            ni.value = ex.note || '';
+            ni.className = 'table-input';
+            ni.placeholder = 'Note';
+            ni.style.textAlign = 'left';
+            ni.addEventListener('blur', function() { updateExtraField(idx, 'note', this.value); });
+            noteCell.appendChild(ni);
+            const amtCell = row.insertCell(2);
+            const ai = document.createElement('input');
+            ai.type = 'text';
+            ai.className = 'table-input';
+            ai.value = formatNumber(ex.amount || 0);
+            ai.addEventListener('focus', function() { this.value = this.value.replace(/,/g, ''); });
+            ai.addEventListener('blur', function() {
+                const num = parseNumber(this.value);
+                this.value = formatNumber(num);
+                updateExtraField(idx, 'amount', num);
+            });
+            ai.addEventListener('keydown', function(e) { if (e.key === 'Enter') this.blur(); });
+            amtCell.appendChild(ai);
+            const actCell = row.insertCell(3);
+            const del = document.createElement('button');
+            del.textContent = '✖️';
+            del.className = 'btn-del btn-sm';
+            del.onclick = () => { delExtraRow(idx); };
+            actCell.appendChild(del);
+        });
+    }
+
+    function updateExtraField(idx, field, val) {
+        const extras = db.years[db.currentYear].extra;
+        if (extras[idx]) { extras[idx][field] = val; saveDB(); calculateAndUpdateStats(); renderExtra(); }
+    }
+    function addExtraRow() {
+        db.years[db.currentYear].extra.push({ date: new Date().toISOString().slice(0, 10), note: 'Bonus', amount: 0 });
+        renderExtra();
+        saveDB();
+        calculateAndUpdateStats();
+        addActivity('Added extra income entry', '✨');
+        showToast('Extra entry added');
+    }
+    function delExtraRow(idx) {
+        db.years[db.currentYear].extra.splice(idx, 1);
+        renderExtra();
+        saveDB();
+        calculateAndUpdateStats();
+        addActivity('Removed extra income entry', '✨');
+        showToast('Entry removed');
+    }
+
+    // ============================================================
+    //  STATS & CHART (updated calculation)
+    // ============================================================
+    function calculateAndUpdateStats() {
+        const yd = db.years[db.currentYear];
+        let totalPay = 0,
+            totalHome = 0,
+            totalExtra = 0,
+            totalBank = 0,
+            totalLoan = 0;
+
+        months.forEach(m => {
+            let s = 0;
+            db.clients.forEach(c => s += (yd.main[m]?.[c] || 0));
+            totalPay += s;
+            totalHome += (yd.home[m] || 0);
+        });
+        if (yd.extra) yd.extra.forEach(e => totalExtra += (e.amount || 0));
+        if (yd.banks) yd.banks.forEach(b => totalBank += (b.balance || 0));
+        if (yd.loans) yd.loans.forEach(l => { if (!l.paid) totalLoan += (l.amount || 0); });
+
+        // Total Income = Payments + Home + Extra
+        const totalIncome = totalPay + totalHome + totalExtra;
+        // Net Worth = Bank + Loans (assets)
+        const netWorth = totalBank + totalLoan;
+
+        document.getElementById('cardClient').textContent = formatNumber(totalPay);
+        document.getElementById('cardHome').textContent = formatNumber(totalHome);
+        document.getElementById('cardExtra').textContent = formatNumber(totalExtra);
+        document.getElementById('cardIncome').textContent = formatNumber(totalIncome);
+        document.getElementById('cardBank').textContent = formatNumber(totalBank);
+        document.getElementById('cardLoan').textContent = formatNumber(totalLoan);
+        document.getElementById('cardGrand').textContent = formatNumber(netWorth);
+
+        // Update chart with payments data only
+        updateChart(months.map(m => {
+            let s = 0;
+            db.clients.forEach(c => s += (yd.main[m]?.[c] || 0));
+            return s;
+        }));
+    }
+
+    function updateChart(data) {
+        if (chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Payments (৳)',
+                    data: data,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37,99,235,0.07)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#1e40af',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top', labels: { color: 'var(--text)' } } },
+                scales: {
+                    y: {
+                        ticks: { color: 'var(--text-light)', callback: function(value) { return formatNumber(value); } }
+                    },
+                    x: { ticks: { color: 'var(--text-light)' } }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    //  EXPORT / IMPORT
+    // ============================================================
+    function exportData() {
+        const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance_backup_${db.currentYear}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        addActivity('Exported data backup', '📥');
+        showToast('Backup exported');
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (imported.years && imported.clients && imported.currentYear) {
+                    db = imported;
+                    saveDB();
+                    fullRefresh();
+                    addActivity('Restored data from backup', '📂');
+                    showToast('✅ Import successful!');
+                } else throw new Error();
+            } catch (er) { showToast('Invalid backup file', 'error'); }
+        };
+        reader.readAsText(file);
+        document.getElementById('importFile').value = '';
+    }
+
+    function exportCSV() {
+        const yd = db.years[db.currentYear];
+        let csv = 'Month';
+        const clients = db.clients;
+        clients.forEach(c => csv += `,${c}`);
+        csv += ',Total,Home\n';
+        months.forEach(m => {
+            let row = m;
+            let sum = 0;
+            clients.forEach(c => {
+                const v = yd.main[m]?.[c] || 0;
+                row += `,${v}`;
+                sum += v;
+            });
+            row += `,${sum},${yd.home[m] || 0}`;
+            csv += row + '\n';
+        });
+        csv += '\n--- Banks ---\n';
+        (yd.banks || []).forEach(b => csv += `${b.name},${b.balance}\n`);
+        csv += '\n--- Loans ---\n';
+        (yd.loans || []).forEach(l => csv += `${l.name},${l.amount},${l.paid ? 'PAID' : 'UNPAID'}\n`);
+        csv += '\n--- Extra Income ---\n';
+        (yd.extra || []).forEach(e => csv += `${e.date},${e.note},${e.amount}\n`);
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `finance_${db.currentYear}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        addActivity('Exported CSV', '📤');
+        showToast('CSV exported');
+    }
+
+    // ============================================================
+    //  LOGOUT & INIT
+    // ============================================================
+    function logout() {
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        addActivity('Logged out', '🔒');
+    }
+
+    function initApp() {
+        if (!db.years[db.currentYear]) db.years[db.currentYear] = { main: {}, home: {}, extra: [], banks: [], loans: [] };
+        saveDB();
+        fullRefresh();
+        renderActivityLog();
+        setInterval(() => { saveDB(); }, 30000);
+    }
+
+    // ============================================================
+    //  INLINE CLIENT ACTIONS
+    // ============================================================
+    function removeClient(clientName) {
+        if (!confirm(`Remove "${clientName}" and ALL payment data?`)) return;
+        deleteClientDataAcrossAllYears(clientName);
+        db.clients = db.clients.filter(c => c !== clientName);
+        saveDB();
+        fullRefresh();
+        addActivity(`Removed client: ${clientName}`, '🗑️');
+        showToast(`🗑️ "${clientName}" removed`);
+    }
+
+    function renameClient(oldName) {
+        const newName = prompt(`Rename "${oldName}" to:`, oldName);
+        if (!newName || newName.trim() === '' || newName === oldName) return;
+        const trimmed = newName.trim();
+        if (db.clients.includes(trimmed)) { showToast('Name exists!'); return; }
+        renameClientData(oldName, trimmed);
+        const idx = db.clients.indexOf(oldName);
+        if (idx !== -1) db.clients[idx] = trimmed;
+        saveDB();
+        fullRefresh();
+        addActivity(`Renamed "${oldName}" → "${trimmed}"`, '✏️');
+        showToast(`✏️ Renamed to "${trimmed}"`);
+    }
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m)); }
+
+    // ============================================================
+    //  EXPOSE TO GLOBAL
+    // ============================================================
+    window.attemptLogin = attemptLogin;
+    window.logout = logout;
+    window.resetCredentials = resetCredentials;
+    window.clearAllData = clearAllData;
+    window.switchYear = switchYear;
+    window.addNewYear = addNewYear;
+    window.addBank = addBank;
+    window.addLoan = addLoan;
+    window.addExtraRow = addExtraRow;
+    window.exportData = exportData;
+    window.exportCSV = exportCSV;
+    window.importData = importData;
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+    window.saveProfile = saveProfile;
+    window.openSettingsModal = openSettingsModal;
+    window.closeSettingsModal = closeSettingsModal;
+    window.saveProfileChanges = saveProfileChanges;
+    window.openClientModal = openClientModal;
+    window.closeClientModal = closeClientModal;
+    window.addClientFromModal = addClientFromModal;
+    window.renameClientFromModal = renameClientFromModal;
+    window.removeClientFromModal = removeClientFromModal;
+    window.removeClient = removeClient;
+    window.renameClient = renameClient;
+    window.toggleTheme = toggleTheme;
+    window.clearActivityLog = clearActivityLog;
+    window.filterClients = filterClients;
+    window.showToast = showToast;
+    window.formatNumber = formatNumber;
+    window.parseNumber = parseNumber;
+</script>
+</body>
+</html>
