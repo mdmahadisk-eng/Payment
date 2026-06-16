@@ -115,7 +115,6 @@
             padding: 8px;
             border-radius: 10px;
         }
-        /* REMOVED .login-footer — no more dangerous links */
 
         /* ===== Dashboard ===== */
         #dashboard { display: none; padding: 16px 20px 40px; max-width: 1600px; margin: 0 auto; }
@@ -204,10 +203,10 @@
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-danger:hover { background: #dc2626; transform: scale(0.97); }
 
-        /* ===== Stats Grid (now 7 cards) ===== */
+        /* ===== Stats Grid (8 cards) ===== */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 14px;
             margin-bottom: 24px;
         }
@@ -233,6 +232,12 @@
             font-weight: 800;
             margin-top: 6px;
             color: var(--text);
+        }
+        .stat-card .sub {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 2px;
+            font-weight: 400;
         }
 
         .section-card {
@@ -477,7 +482,7 @@
 </head>
 <body>
 
-<!-- ===== LOGIN (no footer with dangerous links) ===== -->
+<!-- ===== LOGIN ===== -->
 <div id="login-screen">
     <div class="login-box">
         <h2>⚡ Finance Pro Ultimate</h2>
@@ -485,7 +490,6 @@
         <input type="password" id="password" placeholder="Password">
         <button class="btn-login" onclick="attemptLogin()">Access Dashboard</button>
         <div id="login-error">Invalid credentials. Try <strong>admin</strong> / <strong>1234</strong></div>
-        <!-- No reset/clear links here anymore -->
     </div>
 </div>
 
@@ -507,19 +511,19 @@
             <button class="btn btn-warning btn-sm" onclick="exportCSV()">📤 CSV</button>
             <button class="btn btn-primary btn-sm" onclick="exportData()">📥 Backup</button>
             <label class="btn btn-primary btn-sm" style="background:#475569; cursor:pointer;">📂 Restore<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"></label>
-            <!-- Change Password button -->
             <button class="btn btn-password btn-sm" onclick="openSettingsModal()">🔐 Change Password</button>
             <span class="user-badge" onclick="openProfileModal()" id="profileDisplay">👤 admin</span>
             <button class="btn btn-del btn-sm" onclick="logout()">🚪</button>
         </div>
     </div>
 
-    <!-- Stats Grid: 7 cards -->
+    <!-- Stats Grid: 8 cards -->
     <div class="stats-grid">
-        <div class="stat-card"><h4>📋 Payments</h4><div class="val" id="cardClient">0</div></div>
+        <div class="stat-card"><h4>📋 Payments (Year)</h4><div class="val" id="cardClient">0</div></div>
+        <div class="stat-card" style="border-color:#8b5cf6"><h4>📅 This Month</h4><div class="val" id="cardThisMonth">0</div><div class="sub" id="thisMonthLabel">Loading...</div></div>
         <div class="stat-card" style="border-color:#f59e0b"><h4>🏠 Home</h4><div class="val" id="cardHome">0</div></div>
         <div class="stat-card" style="border-color:#10b981"><h4>✨ Extra</h4><div class="val" id="cardExtra">0</div></div>
-        <div class="stat-card" style="border-color:#8b5cf6"><h4>💰 Total Income</h4><div class="val" id="cardIncome">0</div></div>
+        <div class="stat-card" style="border-color:#06b6d4"><h4>💰 Total Income</h4><div class="val" id="cardIncome">0</div></div>
         <div class="stat-card" style="border-color:#06b6d4"><h4>🏦 Bank</h4><div class="val" id="cardBank">0</div></div>
         <div class="stat-card" style="border-color:#ef4444"><h4>📌 Loans</h4><div class="val" id="cardLoan">0</div></div>
         <div class="stat-card" style="border-color:#8b5cf6"><h4>📊 Net Worth</h4><div class="val" id="cardGrand">0</div></div>
@@ -587,7 +591,6 @@
     </div>
 </div>
 
-<!-- Settings Modal (Password Change + Danger Zone) -->
 <div id="settingsModal" class="modal-overlay">
     <div class="modal-content">
         <h3>🔐 Security & Settings</h3>
@@ -603,8 +606,6 @@
             <button class="btn btn-del" onclick="closeSettingsModal()">Cancel</button>
             <button class="btn btn-primary" onclick="saveProfileChanges()">💾 Save Changes</button>
         </div>
-
-        <!-- Danger Zone: Clear all data (requires current password) -->
         <div class="danger-zone">
             <h4>⚠️ Danger Zone</h4>
             <p style="font-size:13px; color:var(--text-light); margin-bottom:10px;">This will permanently delete ALL finance data, clients, banks, loans, and activity log. It will also log you out.</p>
@@ -662,13 +663,10 @@
     function saveAuthToLocal(a) { localStorage.setItem(AUTH_KEY, JSON.stringify(a)); }
     if (!localStorage.getItem(AUTH_KEY)) saveAuthToLocal({ username: 'admin', password: '1234' });
 
-    // No public reset function anymore; we have secure settings.
-
     function attemptLogin() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value.trim();
         const auth = getStoredAuth();
-
         if (user === auth.username && pass === auth.password) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
@@ -840,7 +838,6 @@
         showToast('✅ Credentials updated!');
     }
 
-    // Secure clear all data – requires current password and confirmation
     function clearAllDataSecure() {
         const currentPass = document.getElementById('modalCurrentPass').value.trim();
         const auth = getStoredAuth();
@@ -849,12 +846,10 @@
             return;
         }
         if (!confirm('⚠️ Are you sure you want to DELETE ALL data? This cannot be undone!')) return;
-        if (!confirm('Final confirmation: Type "DELETE" to proceed.')) return;
-        // Actually check if user typed DELETE? We'll just use the double confirm for safety.
+        if (!confirm('Final confirmation: Click OK to proceed.')) return;
         localStorage.removeItem('financeMegaDB');
         localStorage.removeItem('financeActivityLog');
         localStorage.removeItem('financeProfile');
-        // Keep auth? We'll reset auth to default to prevent lockout.
         saveAuthToLocal({ username: 'admin', password: '1234' });
         showToast('🗑️ All data cleared. Logging out...');
         setTimeout(() => { logout(); }, 500);
@@ -1282,7 +1277,7 @@
     }
 
     // ============================================================
-    //  STATS & CHART (updated calculation)
+    //  STATS & CHART (includes "This Month" calculation)
     // ============================================================
     function calculateAndUpdateStats() {
         const yd = db.years[db.currentYear];
@@ -1292,11 +1287,21 @@
             totalBank = 0,
             totalLoan = 0;
 
-        months.forEach(m => {
+        // Get current month index (0-based)
+        const now = new Date();
+        const currentMonthIndex = now.getMonth(); // 0 = January
+        const currentMonthName = months[currentMonthIndex];
+        let thisMonthPay = 0;
+
+        months.forEach((m, idx) => {
             let s = 0;
             db.clients.forEach(c => s += (yd.main[m]?.[c] || 0));
             totalPay += s;
             totalHome += (yd.home[m] || 0);
+            // If this is the current month, store the payment sum
+            if (idx === currentMonthIndex) {
+                thisMonthPay = s;
+            }
         });
         if (yd.extra) yd.extra.forEach(e => totalExtra += (e.amount || 0));
         if (yd.banks) yd.banks.forEach(b => totalBank += (b.balance || 0));
@@ -1312,6 +1317,10 @@
         document.getElementById('cardBank').textContent = formatNumber(totalBank);
         document.getElementById('cardLoan').textContent = formatNumber(totalLoan);
         document.getElementById('cardGrand').textContent = formatNumber(netWorth);
+
+        // This Month card
+        document.getElementById('cardThisMonth').textContent = formatNumber(thisMonthPay);
+        document.getElementById('thisMonthLabel').textContent = `${currentMonthName} ${now.getFullYear()}`;
 
         updateChart(months.map(m => {
             let s = 0;
@@ -1475,7 +1484,6 @@
     // ============================================================
     window.attemptLogin = attemptLogin;
     window.logout = logout;
-    // No more resetCredentials or clearAllData exposed globally
     window.switchYear = switchYear;
     window.addNewYear = addNewYear;
     window.addBank = addBank;
@@ -1490,7 +1498,7 @@
     window.openSettingsModal = openSettingsModal;
     window.closeSettingsModal = closeSettingsModal;
     window.saveProfileChanges = saveProfileChanges;
-    window.clearAllDataSecure = clearAllDataSecure; // secure version
+    window.clearAllDataSecure = clearAllDataSecure;
     window.openClientModal = openClientModal;
     window.closeClientModal = closeClientModal;
     window.addClientFromModal = addClientFromModal;
