@@ -209,6 +209,8 @@
         .btn-del:hover { background: var(--danger); color: #fff; }
         .btn-ghost { background: transparent; color: var(--text-light); border: 1px solid var(--border); }
         .btn-ghost:hover { background: var(--hover-bg); }
+        .btn-password { background: #8b5cf6; color: #fff; }
+        .btn-password:hover { background: #7c3aed; transform: scale(0.97); }
 
         /* ===== Stats Grid (now 7 cards) ===== */
         .stats-grid {
@@ -510,6 +512,8 @@
             <button class="btn btn-warning btn-sm" onclick="exportCSV()">📤 CSV</button>
             <button class="btn btn-primary btn-sm" onclick="exportData()">📥 Backup</button>
             <label class="btn btn-primary btn-sm" style="background:#475569; cursor:pointer;">📂 Restore<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"></label>
+            <!-- NEW: Change Password button (direct) -->
+            <button class="btn btn-password btn-sm" onclick="openSettingsModal()">🔐 Change Password</button>
             <span class="user-badge" onclick="openProfileModal()" id="profileDisplay">👤 admin</span>
             <button class="btn btn-del btn-sm" onclick="logout()">🚪</button>
         </div>
@@ -588,12 +592,13 @@
     </div>
 </div>
 
+<!-- Settings Modal (Password Change) -->
 <div id="settingsModal" class="modal-overlay">
     <div class="modal-content">
-        <h3>🔐 Security</h3>
+        <h3>🔐 Change Password & Username</h3>
         <label>Current Password</label>
         <input type="password" id="modalCurrentPass" placeholder="Enter current password">
-        <label>New Username</label>
+        <label>New Username (optional)</label>
         <input type="text" id="modalNewUsername" placeholder="New username">
         <label>New Password</label>
         <input type="password" id="modalNewPassword" placeholder="New password (leave blank to keep)">
@@ -601,7 +606,7 @@
         <input type="password" id="modalConfirmPassword" placeholder="Confirm new password">
         <div class="modal-buttons">
             <button class="btn btn-del" onclick="closeSettingsModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveProfileChanges()">Save Changes</button>
+            <button class="btn btn-primary" onclick="saveProfileChanges()">💾 Save Changes</button>
         </div>
     </div>
 </div>
@@ -814,7 +819,7 @@
     }
 
     // ============================================================
-    //  SETTINGS (Security)
+    //  SETTINGS (Password Change)
     // ============================================================
     function openSettingsModal() {
         const auth = getStoredAuth();
@@ -828,16 +833,22 @@
     function saveProfileChanges() {
         const auth = getStoredAuth();
         const current = document.getElementById('modalCurrentPass').value.trim();
-        if (current !== auth.password) { showToast('❌ Wrong current password', 'error'); return; }
+        if (current !== auth.password) {
+            showToast('❌ Wrong current password', 'error');
+            return;
+        }
         const newUser = document.getElementById('modalNewUsername').value.trim() || auth.username;
         const newPass = document.getElementById('modalNewPassword').value.trim();
         const confirm = document.getElementById('modalConfirmPassword').value.trim();
-        if (newPass && newPass !== confirm) { showToast('❌ Passwords do not match', 'error'); return; }
+        if (newPass && newPass !== confirm) {
+            showToast('❌ Passwords do not match', 'error');
+            return;
+        }
         const updated = { username: newUser, password: newPass || auth.password };
         saveAuthToLocal(updated);
         closeSettingsModal();
         updateProfileDisplay();
-        addActivity('Security settings changed', '🔐');
+        addActivity('Password / username changed', '🔐');
         showToast('✅ Credentials updated!');
     }
 
